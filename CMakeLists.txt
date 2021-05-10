@@ -130,10 +130,6 @@ set(BLAKE3_SRC
 )
 ENDIF()
 
-
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
-
 pybind11_add_module(chiapos ${CMAKE_CURRENT_SOURCE_DIR}/python-bindings/chiapos.cpp src/chacha8.c ${BLAKE3_SRC})
 
 add_executable(ProofOfSpace
@@ -141,7 +137,12 @@ add_executable(ProofOfSpace
     src/chacha8.c
     ${BLAKE3_SRC}
 )
-target_link_libraries(ProofOfSpace -static-libgcc -static-libstdc++)
+
+option(BUILD_PROOF_OF_SPACE_STATICALLY "Build ProofOfSpace target statically" OFF)
+IF (BUILD_PROOF_OF_SPACE_STATICALLY)
+  message("Statically build ProofOfSpace")
+  target_link_libraries(ProofOfSpace -static)
+ENDIF()
 
 add_executable(RunTests
     tests/test-main.cpp
