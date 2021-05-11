@@ -35,7 +35,7 @@ The `static` flag is used for linking statically.
 export CC="musl-gcc -static -Os"
 mkdir -p build && cd build
 cmake ../
-make -j<number of cores>
+make -j 6
 
 ```
 ### Run tests
@@ -60,38 +60,6 @@ make -j<number of cores>
 time ./ProofOfSpace -k 25 create
 ```
 
-
-### Hellman Attacks usage
-
-There is an experimental implementation which implements some of the Hellman
-Attacks that can provide significant space savings for the final file.
-
-
-```bash
-./HellmanAttacks -k 18 -f "plot.dat" -m "0x1234" create
-./HellmanAttacks -f "plot.dat" check <iterations>
-```
-
-## Python
-
-Finally, python bindings are provided in the python-bindings directory.
-
-### Install
-
-```bash
-python3 -m venv .venv
-. .venv/bin/activate
-pip3 install .
-```
-
-### Run python tests
-
-Testings uses pytest. Linting uses flake8 and mypy.
-
-```bash
-py.test ./tests -s -v
-```
-
 ## ci Building
 The primary build process for this repository is to use GitHub Actions to
 build binary wheels for MacOS, Linux (x64 and aarch64), and Windows and publish
@@ -100,17 +68,3 @@ them with a source wheel on PyPi. See `.github/workflows/build.yml`. CMake uses
 to download [pybind11](https://github.com/pybind/pybind11). Building is then
 managed by [cibuildwheel](https://github.com/joerick/cibuildwheel). Further
 installation is then available via `pip install chiapos` e.g.
-
-## Contributing and workflow
-Contributions are welcome and more details are available in chia-blockchain's
-[CONTRIBUTING.md](https://github.com/Chia-Network/chia-blockchain/blob/main/CONTRIBUTING.md).
-
-The main branch is usually the currently released latest version on PyPI.
-Note that at times chiapos will be ahead of the release version that
-chia-blockchain requires in it's main/release version in preparation for a
-new chia-blockchain release. Please branch or fork main and then create a
-pull request to the main branch. Linear merging is enforced on main and
-merging requires a completed review. PRs will kick off a GitHub actions ci build
-and analysis of chiapos at
-[lgtm.com](https://lgtm.com/projects/g/Chia-Network/chiapos/?mode=list). Please
-make sure your build is passing and that it does not increase alerts at lgtm.
