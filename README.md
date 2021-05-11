@@ -38,8 +38,21 @@ cmake --build . -- -j 6
 ### Statically linking with musl library
 
 The process requires you to have `musl-gcc` in your `$PATH` environment variable.
-For installing musl library see this [page](https://www.musl-libc.org/how.html)
+For installing musl library see this [page](https://www.musl-libc.org/how.html).
 The `static` flag is used for linking statically.
+
+#### Installing musl using package managers
+##### Ubuntu
+```bash
+sudo apt-get update
+sudo apt-get install musl-tools
+
+```
+#### Debian
+```bash
+apt-get update
+apt-get install -y musl-tools
+```
 
 ```bash
 export CC="musl-gcc -static -Os"
