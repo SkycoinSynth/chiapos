@@ -129,6 +129,12 @@ add_executable(ProofOfSpace
     ${BLAKE3_SRC}
 )
 
+option(BUILD_PROOF_OF_SPACE_STATICALLY "Build ProofOfSpace target statically" OFF)
+IF (BUILD_PROOF_OF_SPACE_STATICALLY)
+  message("Statically build ProofOfSpace")
+  target_link_libraries(ProofOfSpace -static)
+ENDIF()
+
 add_executable(RunTests
     tests/test-main.cpp
     tests/test.cpp

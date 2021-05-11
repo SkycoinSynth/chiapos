@@ -25,6 +25,16 @@ cmake ../
 cmake --build . -- -j 6
 ```
 
+### Static Compilation With glibc
+
+```bash
+# Statically compile ProofOfSpace
+
+mkdir -p build && cd build
+cmake -DBUILD_PROOF_OF_SPACE_STATICALLY=ON ../
+cmake --build . -- -j 6
+```
+
 ### Statically linking with musl library
 
 The process requires you to have `musl-gcc` in your `$PATH` environment variable.
@@ -38,6 +48,7 @@ cmake ../
 make -j 6
 
 ```
+
 ### Run tests
 
 ```bash
