@@ -92,3 +92,28 @@ them with a source wheel on PyPi. See `.github/workflows/build.yml`. CMake uses
 to download [pybind11](https://github.com/pybind/pybind11). Building is then
 managed by [cibuildwheel](https://github.com/joerick/cibuildwheel). Further
 installation is then available via `pip install chiapos` e.g.
+
+
+## Starting Docker For Testing
+To try the docker for debian based systems, follow commands as given below.
+
+```bash
+docker pull debian
+docker run -it debian /bin/bash
+
+apt-get update
+apt-get install -y ssh git gcc cmake vim python-pip
+pip install --upgrade cmake
+git clone https://github.com/skycoinsynth/chiapos
+cd chiapos
+
+mkdir -p build && cd build
+cmake ../
+cmake --build . -- -j 6
+
+./ProofOfSpace -k 21 -f "plot.dat" -i "7e1392f6b7a2d113f8fb685a7409c81211748c335e87decf348a4345e07dcb2b" create
+
+md5sum ./plot.dat
+```
+Note: The target output must be `4c881491d57d0b8817302cb6ce23ff52`, in case it's not that's an error.
+
