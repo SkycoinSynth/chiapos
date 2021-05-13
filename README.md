@@ -77,6 +77,13 @@ make -j 6
 ./ProofOfSpace -k 25 verify <hex proof> <32 byte hex challenge>
 ./ProofOfSpace -f "plot.dat" check <iterations>
 ```
+Following is the map of what least values of (`-s or --stripes`) work for value of (`-k or --size`).
+Note: `k` should be between `17` and `49` and `s` is a power of `2`.
+```bash
+k=18, s=2048
+k=19, s=1024
+k=20, s=2048
+```
 
 ### Benchmark
 
