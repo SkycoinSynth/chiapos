@@ -135,6 +135,14 @@ IF (BUILD_PROOF_OF_SPACE_STATICALLY)
   target_link_libraries(ProofOfSpace -static)
 ENDIF()
 
+option(BUILD_PROOF_OF_SPACE_WITH_GLIBC_2_23 "Build ProofOfSpace target statically" OFF)
+IF(BUILD_PROOF_OF_SPACE_WITH_GLIBC_2_23)
+  message("Statically build ProofOfSpace with custom glibc version")
+  set (GLIBC_2_23_PATH ${LD_LIBRARY_PATH})
+  set (CMAKE_EXE_LINKER_FLAGS "-Wl,--rpath=${GLIBC_2_23_PATH}")
+  message("GLIBC was picked from = " ${CMAKE_EXE_LINKER_FLAGS})
+ENDIF()
+
 add_executable(RunTests
     tests/test-main.cpp
     tests/test.cpp
