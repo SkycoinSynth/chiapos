@@ -115,6 +115,10 @@ int main(int argc, char *argv[]) try {
     if (operation == "help") {
         HelpAndQuit(options);
     } else if (operation == "create") {
+        if (k < kMinPlotSize || k > kMaxPlotSize){
+          cout << "Invalid plot size(k), should be between " << kMinPlotSize << " and " << kMaxPlotSize << endl;
+          exit(1);
+        }
         cout << "Generating plot for k=" << static_cast<int>(k) << " filename=" << filename
              << " id=" << id << endl
              << endl;
