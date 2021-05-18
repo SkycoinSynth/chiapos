@@ -69,35 +69,15 @@ int main(int argc, char *argv[]) try {
 
     // Default values
     uint8_t k = 20;
-    uint32_t num_buckets = 0;
-    uint32_t num_stripes = 0;
-    uint8_t num_threads = 0;
     string filename = "plot.dat";
-    string tempdir = ".";
-    string tempdir2 = ".";
-    string finaldir = ".";
     string operation = "help";
-    string memo = "0102030405";
     string id = "022fb42c08c12de3a6af053880199806532e79515f94e83461612101f9412f9e";
-    bool nobitfield = false;
     bool show_progress = false;
-    uint32_t buffmegabytes = 0;
 
     options.allow_unrecognised_options().add_options()(
             "k, size", "Plot size", cxxopts::value<uint8_t>(k))(
-            "r, threads", "Number of threads", cxxopts::value<uint8_t>(num_threads))(
-                "u, buckets", "Number of buckets", cxxopts::value<uint32_t>(num_buckets))(
-            "s, stripes", "Size of stripes, default=65536 ", cxxopts::value<uint32_t>(num_stripes))(
-            "t, tempdir", "Temporary directory", cxxopts::value<string>(tempdir))(
-        "2, tempdir2", "Second Temporary directory", cxxopts::value<string>(tempdir2))(
-        "d, finaldir", "Final directory", cxxopts::value<string>(finaldir))(
         "f, file", "Filename", cxxopts::value<string>(filename))(
-        "m, memo", "Memo to insert into the plot", cxxopts::value<string>(memo))(
         "i, id", "Unique 32-byte seed for the plot", cxxopts::value<string>(id))(
-        "e, nobitfield", "Disable bitfield", cxxopts::value<bool>(nobitfield))(
-        "b, buffer",
-        "Megabytes to be used as buffer for sorting and plotting",
-        cxxopts::value<uint32_t>(buffmegabytes))(
         "p, progress", "Display progress percentage during plotting",
         cxxopts::value<bool>(show_progress))(
         "help", "Print help");
