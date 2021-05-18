@@ -41,6 +41,21 @@ The process requires you to have `musl-gcc` in your `$PATH` environment variable
 For installing musl library see this [page](https://www.musl-libc.org/how.html).
 The `static` flag is used for linking statically.
 
+### Linking with specific version of GLIBC
+
+Sometimes we have specific requirement for using older linux distro. These
+distros have older versions of development tools(compiler, libraries, ...).
+
+To link with older GLIBC(2.23 specifically) follow below steps
+```bash
+cmake -DBUILD_PROOF_OF_SPACE_WITH_GLIBC_2_23=On -DGLIBC_2_23_PATH=<path/to/oldglibc/install/lib> ../chiapos/
+```
+If `-DGLIBC_2_23_PATH` is not set it picks up from `LD_LIBRARY_PATH`.
+
+*verify the linked libraries:*
+```bash
+  ldd ProofOfSpace
+```
 #### Installing musl using package managers
 ##### Ubuntu
 ```bash
