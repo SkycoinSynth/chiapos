@@ -98,6 +98,16 @@ Note: `k` should be between `17` and `49` and `s` is a power of `2`.
 k=18, s=2048
 k=19, s=1024
 k=20, s=2048
+k=21, s=2048
+k=22, s=2048
+k=23, s=2048
+k=24, s=2048
+k=25, s=2048
+k=26, s=2048
+k=27, s=2048
+k=28, s=2048
+k=29, s=2048
+k=30, s=2048
 ```
 
 ### Benchmark
