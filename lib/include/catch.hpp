@@ -9733,12 +9733,12 @@ namespace Catch {
                 return ParserResult::ok( ParseResultType::Matched );
             };
         auto const loadTestNamesFromFile = [&]( std::string const& filename ) {
-                std::ifstream f( filename.c_str() );
+                std::ifstream f( filename.c_str() ); // Note: File open
                 if( !f.is_open() )
                     return ParserResult::runtimeError( "Unable to load input file: '" + filename + "'" );
 
                 std::string line;
-                while( std::getline( f, line ) ) {
+                while( std::getline( f, line ) ) { // Note: File read
                     line = trim(line);
                     if( !line.empty() && !startsWith( line, '#' ) ) {
                         if( !startsWith( line, '"' ) )
@@ -10452,8 +10452,8 @@ namespace Catch {
             // Libstdc++ has a bug, where std::ifstream sets errno to 0
             // This way our users can properly assert over errno values
             ErrnoGuard guard;
-            std::ifstream in("/proc/self/status");
-            for( std::string line; std::getline(in, line); ) {
+            std::ifstream in("/proc/self/status");  // Note: File opened
+            for( std::string line; std::getline(in, line); ) {  // Note: File read
                 static const int PREFIX_LEN = 11;
                 if( line.compare(0, PREFIX_LEN, "TracerPid:\t") == 0 ) {
                     // We're traced if the PID is not 0 and no other PID starts
@@ -12057,7 +12057,7 @@ namespace Catch {
 
     TempFile::~TempFile() {
          // TBD: What to do about errors here?
-         std::fclose(m_file);
+         std::fclose(m_file); // Note: File closed
          // We manually create the file on Windows only, on Linux
          // it will be autodeleted
 #if defined(_MSC_VER)
@@ -12073,7 +12073,7 @@ namespace Catch {
         std::stringstream sstr;
         char buffer[100] = {};
         std::rewind(m_file);
-        while (std::fgets(buffer, sizeof(buffer), m_file)) {
+        while (std::fgets(buffer, sizeof(buffer), m_file)) { // Note: File read
             sstr << buffer;
         }
         return sstr.str();
@@ -13625,7 +13625,7 @@ namespace Catch {
             mutable std::ofstream m_ofs;
         public:
             FileStream( StringRef filename ) {
-                m_ofs.open( filename.c_str() );
+                m_ofs.open( filename.c_str() ); // Note: File opened
                 CATCH_ENFORCE( !m_ofs.fail(), "Unable to open file: '" << filename << "'" );
             }
             ~FileStream() override = default;

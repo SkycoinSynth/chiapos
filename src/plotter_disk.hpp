@@ -266,7 +266,7 @@ public:
                 p2.PrintElapsed("Time for phase 2 =");
 
                 // Now we open a new file, where the final contents of the plot will be stored.
-                uint32_t header_size = WriteHeader(tmp2_disk, k, id, memo, memo_len);
+                uint32_t header_size = WriteHeader(tmp2_disk, k, id, memo, memo_len); // Note: File write
 
                 std::cout << std::endl
                       << "Starting phase 3/4: Compression without bitfield from tmp files into " << tmp_2_filename
@@ -316,7 +316,7 @@ public:
                 p2.PrintElapsed("Time for phase 2 =");
 
                 // Now we open a new file, where the final contents of the plot will be stored.
-                uint32_t header_size = WriteHeader(tmp2_disk, k, id, memo, memo_len);
+                uint32_t header_size = WriteHeader(tmp2_disk, k, id, memo, memo_len); // Note: File write
 
                 std::cout << std::endl
                       << "Starting phase 3/4: Compression from tmp files into " << tmp_2_filename
@@ -460,25 +460,26 @@ private:
 
         uint8_t k_buffer[1];
         k_buffer[0] = k;
-        plot_Disk.Write(write_pos, (k_buffer), 1);
+        plot_Disk.Write(write_pos, (k_buffer), 1); // Note: File write
+
         write_pos += 1;
 
         uint8_t size_buffer[2];
         Util::IntToTwoBytes(size_buffer, kFormatDescription.size());
-        plot_Disk.Write(write_pos, (size_buffer), 2);
+        plot_Disk.Write(write_pos, (size_buffer), 2); // Note: File write
         write_pos += 2;
-        plot_Disk.Write(write_pos, (uint8_t*)kFormatDescription.data(), kFormatDescription.size());
+        plot_Disk.Write(write_pos, (uint8_t*)kFormatDescription.data(), kFormatDescription.size()); // Note: File write
         write_pos += kFormatDescription.size();
 
         Util::IntToTwoBytes(size_buffer, memo_len);
-        plot_Disk.Write(write_pos, (size_buffer), 2);
+        plot_Disk.Write(write_pos, (size_buffer), 2); // Note: File write
         write_pos += 2;
-        plot_Disk.Write(write_pos, (memo), memo_len);
+        plot_Disk.Write(write_pos, (memo), memo_len); // Note: File write
         write_pos += memo_len;
 
         uint8_t pointers[10 * 8];
         memset(pointers, 0, 10 * 8);
-        plot_Disk.Write(write_pos, (pointers), 10 * 8);
+        plot_Disk.Write(write_pos, (pointers), 10 * 8); // Note: File write
         write_pos += 10 * 8;
 
         uint32_t bytes_written =

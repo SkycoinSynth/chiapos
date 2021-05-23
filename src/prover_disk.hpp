@@ -54,7 +54,7 @@ public:
         struct plot_header header{};
         this->filename = filename;
 
-        std::ifstream disk_file(filename, std::ios::in | std::ios::binary);
+        std::ifstream disk_file(filename, std::ios::in | std::ios::binary); // Note: File opened
 
         if (!disk_file.is_open()) {
             throw std::invalid_argument("Invalid file " + filename);
@@ -67,7 +67,7 @@ public:
         // 2 bytes   - memo length
         // x bytes   - memo
 
-        SafeRead(disk_file, (uint8_t*)&header, sizeof(header));
+        SafeRead(disk_file, (uint8_t*)&header, sizeof(header)); // Note: File read
         if (memcmp(header.magic, "Proof of Space Plot", sizeof(header.magic)) != 0)
             throw std::invalid_argument("Invalid plot header magic");
 
@@ -85,17 +85,17 @@ public:
         SafeSeek(disk_file, offsetof(struct plot_header, fmt_desc) + fmt_desc_len);
 
         uint8_t size_buf[2];
-        SafeRead(disk_file, size_buf, 2);
+        SafeRead(disk_file, size_buf, 2); // Note: File opened
         this->memo_size = Util::TwoBytesToInt(size_buf);
         this->memo = new uint8_t[this->memo_size];
-        SafeRead(disk_file, this->memo, this->memo_size);
+        SafeRead(disk_file, this->memo, this->memo_size); // Note: File opened
 
         this->table_begin_pointers = std::vector<uint64_t>(11, 0);
         this->C2 = std::vector<uint64_t>();
 
         uint8_t pointer_buf[8];
         for (uint8_t i = 1; i < 11; i++) {
-            SafeRead(disk_file, pointer_buf, 8);
+            SafeRead(disk_file, pointer_buf, 8); // Note: File opened
             this->table_begin_pointers[i] = Util::EightBytesToInt(pointer_buf);
         }
 
@@ -111,7 +111,7 @@ public:
         // read from disk the C1 and C3 entries.
         auto* c2_buf = new uint8_t[c2_size];
         for (uint32_t i = 0; i < c2_entries - 1; i++) {
-            SafeRead(disk_file, c2_buf, c2_size);
+            SafeRead(disk_file, c2_buf, c2_size); // Note: File opened
             this->C2.push_back(Bits(c2_buf, c2_size, c2_size * 8).Slice(0, k).GetValue());
         }
 
@@ -148,7 +148,7 @@ public:
         std::lock_guard<std::mutex> l(_mtx);
 
         {
-            std::ifstream disk_file(filename, std::ios::in | std::ios::binary);
+            std::ifstream disk_file(filename, std::ios::in | std::ios::binary); //Note: File opened
 
             if (!disk_file.is_open()) {
                 throw std::invalid_argument("Invalid file " + filename);
@@ -170,7 +170,7 @@ public:
                 // This inner loop goes from table 6 to table 1, getting the two backpointers,
                 // and following one of them.
                 for (uint8_t table_index = 6; table_index > 1; table_index--) {
-                    uint128_t line_point = ReadLinePoint(disk_file, table_index, position);
+                    uint128_t line_point = ReadLinePoint(disk_file, table_index, position); // Note: File read
 
                     auto xy = Encoding::LinePointToSquare(line_point);
                     assert(xy.first >= xy.second);
@@ -181,7 +181,7 @@ public:
                         position = xy.first;
                     }
                 }
-                uint128_t new_line_point = ReadLinePoint(disk_file, 1, position);
+                uint128_t new_line_point = ReadLinePoint(disk_file, 1, position); // Note: File read
                 auto x1x2 = Encoding::LinePointToSquare(new_line_point);
 
                 // The final two x values (which are stored in the same location) are hashed
@@ -206,7 +206,7 @@ public:
 
         std::lock_guard<std::mutex> l(_mtx);
         {
-            std::ifstream disk_file(filename, std::ios::in | std::ios::binary);
+            std::ifstream disk_file(filename, std::ios::in | std::ios::binary);  //Note: File opened
 
             if (!disk_file.is_open()) {
                 throw std::invalid_argument("Invalid file " + filename);
@@ -260,7 +260,7 @@ private:
 
     static void SafeRead(std::ifstream& disk_file, uint8_t* target, uint64_t size) {
         int64_t pos = disk_file.tellg();
-        disk_file.read(reinterpret_cast<char*>(target), size);
+        disk_file.read(reinterpret_cast<char*>(target), size); // Note: File read
 
         if (disk_file.fail()) {
             std::cout << "goodbit, failbit, badbit, eofbit: "
@@ -288,13 +288,13 @@ private:
         // This is the checkpoint at the beginning of the park
         uint16_t line_point_size = EntrySizes::CalculateLinePointSize(k);
         auto* line_point_bin = new uint8_t[line_point_size + 7];
-        SafeRead(disk_file, line_point_bin, line_point_size);
+        SafeRead(disk_file, line_point_bin, line_point_size); // Note: File read
         uint128_t line_point = Util::SliceInt128FromBytes(line_point_bin, 0, k * 2);
 
         // Reads EPP stubs
         uint32_t stubs_size_bits = EntrySizes::CalculateStubsSize(k) * 8;
         auto* stubs_bin = new uint8_t[stubs_size_bits / 8 + 7];
-        SafeRead(disk_file, stubs_bin, stubs_size_bits / 8);
+        SafeRead(disk_file, stubs_bin, stubs_size_bits / 8); // Note: File read
 
         // Reads EPP deltas
         uint32_t max_deltas_size_bits = EntrySizes::CalculateMaxDeltasSize(k, table_index) * 8;
@@ -302,7 +302,7 @@ private:
 
         // Reads the size of the encoded deltas object
         uint16_t encoded_deltas_size = 0;
-        SafeRead(disk_file, (uint8_t*)&encoded_deltas_size, sizeof(uint16_t));
+        SafeRead(disk_file, (uint8_t*)&encoded_deltas_size, sizeof(uint16_t)); // Note: File read
 
         if (encoded_deltas_size * 8 > max_deltas_size_bits) {
             throw std::invalid_argument("Invalid size for deltas: " + std::to_string(encoded_deltas_size));
@@ -314,10 +314,10 @@ private:
             // Uncompressed
             encoded_deltas_size &= 0x7fff;
             deltas.resize(encoded_deltas_size);
-            SafeRead(disk_file, deltas.data(), encoded_deltas_size);
+            SafeRead(disk_file, deltas.data(), encoded_deltas_size); // Note: File read
         } else {
             // Compressed
-            SafeRead(disk_file, deltas_bin, encoded_deltas_size);
+            SafeRead(disk_file, deltas_bin, encoded_deltas_size); // Note: File read
 
             // Decodes the deltas
             double R = kRValues[table_index - 1];
@@ -439,7 +439,7 @@ private:
         broke = false;
         // Goes through C2 entries until we find the correct C1 checkpoint.
         for (uint64_t start = 0; start < kCheckpoint1Interval; start++) {
-            SafeRead(disk_file, c1_entry_bytes, c1_entry_size);
+            SafeRead(disk_file, c1_entry_bytes, c1_entry_size); // Note: File read
             Bits c1_entry = Bits(c1_entry_bytes, Util::ByteAlign(k) / 8, Util::ByteAlign(k));
             uint64_t read_f7 = c1_entry.Slice(0, k).GetValue();
 
@@ -481,23 +481,23 @@ private:
             // In this case, we read the previous park as well as the current one
             c1_index -= 1;
             SafeSeek(disk_file, table_begin_pointers[8] + c1_index * Util::ByteAlign(k) / 8);
-            SafeRead(disk_file, c1_entry_bytes, Util::ByteAlign(k) / 8);
+            SafeRead(disk_file, c1_entry_bytes, Util::ByteAlign(k) / 8); // Note: File read
             Bits c1_entry_bits = Bits(c1_entry_bytes, Util::ByteAlign(k) / 8, Util::ByteAlign(k));
             next_f7 = curr_f7;
             curr_f7 = c1_entry_bits.Slice(0, k).GetValue();
 
             SafeSeek(disk_file, table_begin_pointers[10] + c1_index * c3_entry_size);
 
-            SafeRead(disk_file, encoded_size_buf, 2);
+            SafeRead(disk_file, encoded_size_buf, 2); // Note: File read
             encoded_size = Bits(encoded_size_buf, 2, 16).GetValue();
-            SafeRead(disk_file, bit_mask, c3_entry_size - 2);
+            SafeRead(disk_file, bit_mask, c3_entry_size - 2); // Note: File read
 
             p7_positions =
                 GetP7Positions(curr_f7, f7, curr_p7_pos, bit_mask, encoded_size, c1_index);
 
-            SafeRead(disk_file, encoded_size_buf, 2);
+            SafeRead(disk_file, encoded_size_buf, 2); // Note: File read
             encoded_size = Bits(encoded_size_buf, 2, 16).GetValue();
-            SafeRead(disk_file, bit_mask, c3_entry_size - 2);
+            SafeRead(disk_file, bit_mask, c3_entry_size - 2); // Note: File read
 
             c1_index++;
             curr_p7_pos = c1_index * kCheckpoint1Interval;
@@ -508,9 +508,9 @@ private:
 
         } else {
             SafeSeek(disk_file, table_begin_pointers[10] + c1_index * c3_entry_size);
-            SafeRead(disk_file, encoded_size_buf, 2);
+            SafeRead(disk_file, encoded_size_buf, 2); // Note: File read
             encoded_size = Bits(encoded_size_buf, 2, 16).GetValue();
-            SafeRead(disk_file, bit_mask, c3_entry_size - 2);
+            SafeRead(disk_file, bit_mask, c3_entry_size - 2); // Note: File read
 
             p7_positions =
                 GetP7Positions(curr_f7, f7, curr_p7_pos, bit_mask, encoded_size, c1_index);
@@ -533,13 +533,15 @@ private:
         auto* p7_park_buf = new uint8_t[p7_park_size_bytes];
         uint64_t park_index = (p7_positions[0] == 0 ? 0 : p7_positions[0]) / kEntriesPerPark;
         SafeSeek(disk_file, table_begin_pointers[7] + park_index * p7_park_size_bytes);
-        SafeRead(disk_file, p7_park_buf, p7_park_size_bytes);
+        SafeRead(disk_file, p7_park_buf, p7_park_size_bytes); // Note: File read
+
         ParkBits p7_park = ParkBits(p7_park_buf, p7_park_size_bytes, p7_park_size_bytes * 8);
         for (uint64_t i = 0; i < p7_positions[p7_positions.size() - 1] - p7_positions[0] + 1; i++) {
             uint64_t new_park_index = (p7_positions[i]) / kEntriesPerPark;
             if (new_park_index > park_index) {
                 SafeSeek(disk_file, table_begin_pointers[7] + new_park_index * p7_park_size_bytes);
-                SafeRead(disk_file, p7_park_buf, p7_park_size_bytes);
+                SafeRead(disk_file, p7_park_buf, p7_park_size_bytes); // Note: File read
+
                 p7_park = ParkBits(p7_park_buf, p7_park_size_bytes, p7_park_size_bytes * 8);
             }
             uint32_t start_bit_index = (p7_positions[i] % kEntriesPerPark) * (k + 1);
@@ -636,7 +638,8 @@ private:
     // recursively calling GetInputs for table 4.
     std::vector<Bits> GetInputs(std::ifstream& disk_file, uint64_t position, uint8_t depth)
     {
-        uint128_t line_point = ReadLinePoint(disk_file, depth, position);
+        uint128_t line_point = ReadLinePoint(disk_file, depth, position); // Note: File read
+
         std::pair<uint64_t, uint64_t> xy = Encoding::LinePointToSquare(line_point);
 
         if (depth == 1) {
