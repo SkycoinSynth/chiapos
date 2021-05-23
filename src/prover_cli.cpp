@@ -102,15 +102,15 @@ int main(int argc, char *argv[]) try {
         string proof = Strip0x(argv[2]);
         string challenge = Strip0x(argv[3]);
         if (id.size() != 64) {
-            cout << "Invalid ID, should be 32 bytes" << endl;
+            cout << "Error: Invalid ID: should be 32 bytes" << ";" << endl;
             exit(1);
         }
         if (challenge.size() != 64) {
-            cout << "Invalid challenge, should be 32 bytes" << endl;
+            cout << "Error: Invalid challenge: should be 32 bytes" << ";" << endl;
             exit(1);
         }
         if (proof.size() % 16) {
-            cout << "Invalid proof, should be a multiple of 8 bytes" << endl;
+            cout << "Error: Invalid proof: should be a multiple of 8 bytes" << ";" << endl;
             exit(1);
         }
         k = proof.size() / 16;
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) try {
         if (quality.GetSize() == 256) {
             cout << "Proof verification suceeded. Quality: " << quality << endl;
         } else {
-            cout << "Proof verification failed." << endl;
+            cout << "Error: Proof verification failed: " << ";" << endl;
             exit(1);
         }
         delete[] proof_bytes;
@@ -171,12 +171,12 @@ int main(int argc, char *argv[]) try {
                         cout << "Proof verification suceeded. k = " << static_cast<int>(k) << endl;
                         success++;
                     } else {
-                        cout << "Proof verification failed." << endl;
+                        cout << "Error: Proof verification failed:" << ";" << endl;
                     }
                     delete[] proof_data;
                 }
             } catch (const std::exception& error) {
-                cout << "Threw: " << error.what() << endl;
+                cout << "Error: Threw: " << error.what() << ";" << endl;
                 continue;
             }
         }
@@ -184,13 +184,13 @@ int main(int argc, char *argv[]) try {
                   << (success * 100 / static_cast<double>(iterations)) << "%." << std::endl;
         if (show_progress) { progress(4, 1, 1); }
     } else {
-        cout << "Invalid operation. Use verify/check" << endl;
+        cout << "Error: Invalid operation: Use verify/check" << ";" << endl;
     }
     return 0;
 } catch (const cxxopts::OptionException &e) {
-    cout << "error parsing options: " << e.what() << endl;
+    cout << "Error: parsing options: " << e.what() << ";" << endl;
     return 1;
 } catch (const std::exception &e) {
-    std::cerr << "Caught exception: " << e.what() << endl;
+    std::cerr << "Error: Caught exception: " << e.what() << ";" << endl;
     throw e;
 }

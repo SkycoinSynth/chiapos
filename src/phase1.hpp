@@ -277,7 +277,7 @@ void* phase1_thread(THREADDATA* ptd)
                         // Compute all matches between the two buckets and save indeces.
                         idx_count = f.FindMatches(bucket_L, bucket_R, idx_L, idx_R);
                         if(idx_count >= 10000) {
-                            std::cout << "sanity check: idx_count exceeded 10000!" << std::endl;
+                            std::cout << "Error: sanity check: idx_count exceeded 10000!" << ";" << std::endl;
                             exit(0);
                         }
                         // We mark entries as used if they took part in a match.
