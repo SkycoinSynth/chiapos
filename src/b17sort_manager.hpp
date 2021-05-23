@@ -176,7 +176,7 @@ public:
         // Close and delete files in case we exit without doing the sort
         for (auto &fd : this->bucket_files) {
             std::string filename = fd.GetFileName();
-            fd.Close();
+            fd.Close(); // Note: File close
             fs::remove(fs::path(fd.GetFileName()));
         }
         delete[] this->prev_bucket_buf;

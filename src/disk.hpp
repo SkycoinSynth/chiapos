@@ -39,8 +39,8 @@ constexpr uint64_t write_cache = 1024 * 1024;
 constexpr uint64_t read_ahead = 1024 * 1024;
 
 struct Disk {
-    virtual uint8_t const* Read(uint64_t begin, uint64_t length) = 0;
-    virtual void Write(uint64_t begin, const uint8_t *memcache, uint64_t length) = 0;
+    virtual uint8_t const* Read(uint64_t begin, uint64_t length) = 0; // Note: File read
+    virtual void Write(uint64_t begin, const uint8_t *memcache, uint64_t length) = 0; // Note: File write
     virtual void Truncate(uint64_t new_size) = 0;
     virtual std::string GetFileName() = 0;
     virtual void FreeMemory() = 0;
@@ -67,7 +67,7 @@ void disk_log(fs::path const& filename, op_t const op, uint64_t offset, uint64_t
 
     auto const timestamp = std::chrono::steady_clock::now() - start_time;
 
-    int fd = ::open("disk.log", O_WRONLY | O_CREAT | O_APPEND, 0755);
+    int fd = ::open("disk.log", O_WRONLY | O_CREAT | O_APPEND, 0755); // Note: File open
 
     std::unique_lock<std::mutex> l(m);
 
@@ -80,7 +80,7 @@ void disk_log(fs::path const& filename, op_t const op, uint64_t offset, uint64_t
 
         int const len = std::snprintf(buffer, sizeof(buffer)
             , "# %d %s\n", next_file, filename.string().c_str());
-        ::write(fd, buffer, len);
+        ::write(fd, buffer, len); // Note: File write
         return next_file++;
     }();
 
@@ -92,8 +92,8 @@ void disk_log(fs::path const& filename, op_t const op, uint64_t offset, uint64_t
         , offset + length
         , int(op)
         , index);
-    ::write(fd, buffer, len);
-    ::close(fd);
+    ::write(fd, buffer, len); // Note: File write
+    ::close(fd); // Note: File close
 }
 #endif
 
@@ -101,7 +101,7 @@ struct FileDisk {
     explicit FileDisk(const fs::path &filename)
     {
         filename_ = filename;
-        Open(writeFlag);
+        Open(writeFlag); // Note: File open
     }
 
     void Open(uint8_t flags = 0)
@@ -114,7 +114,7 @@ struct FileDisk {
 #ifdef _WIN32
             f_ = ::_wfopen(filename_.c_str(), (flags & writeFlag) ? L"w+b" : L"r+b");
 #else
-            f_ = ::fopen(filename_.c_str(), (flags & writeFlag) ? "w+b" : "r+b");
+            f_ = ::fopen(filename_.c_str(), (flags & writeFlag) ? "w+b" : "r+b"); // Note: File opened
 #endif
             if (f_ == nullptr) {
                 std::string error_message =
@@ -142,7 +142,7 @@ struct FileDisk {
     void Close()
     {
         if (f_ == nullptr) return;
-        ::fclose(f_);
+        ::fclose(f_); // Note: File close
         f_ = nullptr;
         readPos = 0;
         writePos = 0;

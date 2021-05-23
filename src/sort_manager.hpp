@@ -96,7 +96,7 @@ public:
         uint64_t const bucket_index =
             Util::ExtractNum(entry, entry_size_, begin_bits_, log_num_buckets_);
         bucket_t& b = buckets_[bucket_index];
-        b.file.Write(b.write_pointer, entry, entry_size_);
+        b.file.Write(b.write_pointer, entry, entry_size_); // Note: File write
         b.write_pointer += entry_size_;
     }
 
@@ -322,7 +322,7 @@ private:
 
         // Deletes the bucket file
         std::string filename = b.file.GetFileName();
-        b.underlying_file.Close();
+        b.underlying_file.Close(); // Note: File close
         fs::remove(fs::path(filename));
 
         this->final_position_start = this->final_position_end;

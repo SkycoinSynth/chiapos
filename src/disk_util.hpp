@@ -99,7 +99,7 @@ namespace DiskUtil {
         }
 
         std::ifstream file;
-        file.open(filename.c_str());
+        file.open(filename.c_str()); // Note: File opened
 
         if (file.fail()) {
             std::ostringstream err;
@@ -109,9 +109,9 @@ namespace DiskUtil {
         }
 
         std::string line;
-        getline(file, line);
+        getline(file, line); // Note: File read
 
-        file.close();
+        file.close(); // Note: File close
 
         return !line.empty() && line.front() == '1';
 #endif
@@ -127,7 +127,7 @@ namespace DiskUtil {
 #ifdef _WIN32
         return -1;
 #else
-        int dir_fd = open(dirname.c_str(), O_RDONLY | O_NOCTTY);
+        int dir_fd = open(dirname.c_str(), O_RDONLY | O_NOCTTY); // Note: File opened
         if (dir_fd == -1) {
             std::cerr << "Unable to open directory for locking: " << dirname
                 << ". Error: " << strerror(errno) << std::endl;
