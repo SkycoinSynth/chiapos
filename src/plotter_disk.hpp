@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <unordered_map>
 #include <map>
 #include <string>
 #include <vector>
@@ -92,7 +93,27 @@ public:
         if (stripe_size_input != 0) {
             stripe_size = stripe_size_input;
         } else {
-            stripe_size = 65536;
+            std::unordered_map</*k*/ int, /*s*/int> k_s_map{
+            {18,2048},
+            {19,1024},
+            {20,2048},
+            {21,2048},
+            {22,2048},
+            {23,2048},
+            {24,2048},
+            {25,2048},
+            {26,2048},
+            {27,2048},
+            {28,2048},
+            {29,2048},
+            {30,2048},
+            };
+            auto found{k_s_map.find(k)};
+            if (found != k_s_map.end()){
+               stripe_size = found->second;
+            } else{
+              stripe_size = 65536;
+            }
         }
         if (num_threads_input != 0) {
             num_threads = num_threads_input;
