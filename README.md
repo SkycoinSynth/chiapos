@@ -136,7 +136,7 @@ docker run -it debian /bin/bash
 apt-get update
 apt-get install -y ssh git gcc cmake vim python-pip
 pip install --upgrade cmake
-git clone https://github.com/skycoinsynth/chiapos
+git clone https://github.com/watercompany/chiapos
 cd chiapos
 
 mkdir -p build && cd build
