@@ -118,7 +118,7 @@ namespace DiskUtil {
     }
 
     inline bool ShouldLock(const std::string &dir) {
-        return DiskUtil::IsRotational(dir);
+        return false;
     }
 
     inline int LockDirectory(
