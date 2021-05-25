@@ -10420,7 +10420,7 @@ namespace Catch {
 
             size = sizeof(info);
             if( sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, nullptr, 0) != 0 ) {
-                Catch::cerr() << "\n** Call to sysctl failed - unable to determine if debugger is active **\n" << std::endl;
+                Catch::cerr() << "Error: sysctl failed: ** Call to sysctl failed - unable to determine if debugger is active **" << ";" << std::endl;
                 return false;
             }
 
@@ -10510,8 +10510,8 @@ namespace Catch {
 #if defined(CATCH_CONFIG_DISABLE_EXCEPTIONS) && !defined(CATCH_CONFIG_DISABLE_EXCEPTIONS_CUSTOM_HANDLER)
     [[noreturn]]
     void throw_exception(std::exception const& e) {
-        Catch::cerr() << "Catch will terminate because it needed to throw an exception.\n"
-                      << "The message was: " << e.what() << '\n';
+        Catch::cerr() << "Error: Catch will terminate because it needed to throw an exception.\n"
+                      << "The message was: " << e.what() << ";" << '\n';
         std::terminate();
     }
 #endif
