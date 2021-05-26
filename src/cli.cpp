@@ -83,9 +83,11 @@ int main(int argc, char *argv[]) try {
     string id = "022fb42c08c12de3a6af053880199806532e79515f94e83461612101f9412f9e";
     bool nobitfield = false;
     bool show_progress = false;
+    bool disk_rotation = false;
     uint32_t buffmegabytes = 0;
 
     options.allow_unrecognised_options().add_options()(
+            "q, disk-rotation", "Allow disk rotation", cxxopts::value<bool>(disk_rotation))(
             "k, size", "Plot size", cxxopts::value<uint8_t>(k))(
             "r, threads", "Number of threads", cxxopts::value<uint8_t>(num_threads))(
                 "u, buckets", "Number of buckets", cxxopts::value<uint32_t>(num_buckets))(
@@ -140,6 +142,7 @@ int main(int argc, char *argv[]) try {
 
         DiskPlotter plotter = DiskPlotter();
         plotter.CreatePlotDisk(
+                disk_rotation,
                 tempdir,
                 tempdir2,
                 finaldir,
