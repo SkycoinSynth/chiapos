@@ -82,6 +82,7 @@ int main(int argc, char *argv[]) try {
     string memo = "0102030405";
     string id = "022fb42c08c12de3a6af053880199806532e79515f94e83461612101f9412f9e";
     bool nobitfield = false;
+    uint8_t phase_id = 0;
     bool show_progress = false;
     uint32_t buffmegabytes = 0;
 
@@ -100,6 +101,8 @@ int main(int argc, char *argv[]) try {
         "b, buffer",
         "Megabytes to be used as buffer for sorting and plotting",
         cxxopts::value<uint32_t>(buffmegabytes))(
+        "P, Phase", "Phase number to plot (1, 2, 3, 4, or 0(default, all phases)",
+        cxxopts::value<uint8_t>(phase_id))(
         "p, progress", "Display progress percentage during plotting",
         cxxopts::value<bool>(show_progress))(
         "help", "Print help");
@@ -132,6 +135,11 @@ int main(int argc, char *argv[]) try {
             cout << "Error: Invalid memo: should be only whole bytes (hex)" << ";" << endl;
             exit(1);
         }
+        if (phase_id > 4) {
+            cout << "Invalid phase identifier, should be between 0 and 4." << endl;
+            exit(1);
+        }
+
         std::vector<uint8_t> memo_bytes(memo.size() / 2);
         std::array<uint8_t, 32> id_bytes;
 
@@ -154,7 +162,8 @@ int main(int argc, char *argv[]) try {
                 num_stripes,
                 num_threads,
                 nobitfield,
-                show_progress);
+                show_progress,
+                phase_id);
     } else if (operation == "prove") {
         if (argc < 3) {
             HelpAndQuit(options);
