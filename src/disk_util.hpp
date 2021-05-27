@@ -55,8 +55,8 @@ namespace DiskUtil {
             realpath(symlink.c_str(), nullptr), free };
         if (!pathbuf) {
             std::ostringstream err;
-            std::cerr << "Unable to find full device path: "
-                << strerror(errno) << std::endl;
+            std::cerr << "Error: device path error: Unable to find full device path: "
+                << strerror(errno) << ";" << std::endl;
             return fs::path();
         }
 
@@ -73,8 +73,8 @@ namespace DiskUtil {
 
         if (0 != stat(dir.c_str(), &s)) {
             std::ostringstream err;
-            std::cerr << "Unable to find device name for dir " << dir << ": "
-                << strerror(errno) << std::endl;
+            std::cerr << "Error: device name error: Unable to find device name for dir " << dir << ": "
+                << strerror(errno) << ";" << std::endl;
             return false;
         }
 
@@ -92,7 +92,7 @@ namespace DiskUtil {
             }
 
             if (!device_path.has_parent_path()) {
-                std::cerr << "Unable to determine device media type" << std::endl;
+                std::cerr << "Error: device media type error: Unable to determine device media type" << ";" << std::endl;
                 return false;
             }
             device_path = device_path.parent_path();
@@ -103,8 +103,8 @@ namespace DiskUtil {
 
         if (file.fail()) {
             std::ostringstream err;
-            std::cerr << "Unable to open " << filename << " for reading: "
-                << strerror(errno) << std::endl;
+            std::cerr << "Error: file open error: Unable to open " << filename << " for reading: "
+                << strerror(errno) << ";" << std::endl;
             return false;
         }
 
@@ -129,8 +129,8 @@ namespace DiskUtil {
 #else
         int dir_fd = open(dirname.c_str(), O_RDONLY | O_NOCTTY); // Note: File opened
         if (dir_fd == -1) {
-            std::cerr << "Unable to open directory for locking: " << dirname
-                << ". Error: " << strerror(errno) << std::endl;
+            std::cerr << "Error: directory opening error: Unable to open directory for locking: " << dirname
+                << ". Error: " << strerror(errno) << ";" << std::endl;
             return -1;
         }
         while (0 != flock(dir_fd, LOCK_EX | LOCK_NB)) {
@@ -138,8 +138,8 @@ namespace DiskUtil {
             if (EWOULDBLOCK == errno) {
                 std::this_thread::sleep_for(10s);
             } else {
-                std::cerr << "Unable to lock directory (retrying in 1 minute): "
-                    << ". Error: " << strerror(errno) << std::endl;
+                std::cerr << "Error: lock directory error: Unable to lock directory (retrying in 1 minute): "
+                    << ". Error: " << strerror(errno) << ";" << std::endl;
                 std::this_thread::sleep_for(60s);
             }
         }
@@ -155,13 +155,13 @@ namespace DiskUtil {
         return false;
 #else
         if (-1 == flock(dir_fd, LOCK_UN)) {
-            std::cerr << "Failed to unlock the directory: " << dirname
-                << ". Error: " << strerror(errno) << std::endl;
+            std::cerr << "Error: directory error: Failed to unlock the directory: " << dirname
+                << ". Error: " << strerror(errno) << ";" << std::endl;
             return false;
         }
         if (-1 == close(dir_fd)) {
-            std::cerr << "Failed to close the directory during unlocking: " << dirname
-                << ". Error: " << strerror(errno) << std::endl;
+            std::cerr << "Error: directory error: Failed to close the directory during unlocking: " << dirname
+                << ". Error: " << strerror(errno) << ";" << std::endl;
             return false;
         }
         return true;
