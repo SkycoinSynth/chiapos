@@ -98,10 +98,10 @@ void disk_log(fs::path const& filename, op_t const op, uint64_t offset, uint64_t
 #endif
 
 struct FileDisk {
-    explicit FileDisk(const fs::path &filename)
+    explicit FileDisk(const fs::path &filename, uint8_t flags = writeFlag)
     {
         filename_ = filename;
-        Open(writeFlag); // Note: File open
+        Open(flags);
     }
 
     void Open(uint8_t flags = 0)
