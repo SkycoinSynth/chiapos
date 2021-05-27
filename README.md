@@ -91,6 +91,7 @@ make -j 6
 ./ProofOfSpace -f "plot.dat" prove <32 byte hex challenge>
 ./ProofOfSpace -k 25 verify <hex proof> <32 byte hex challenge>
 ./ProofOfSpace -f "plot.dat" check <iterations>
+./ProofOfSpace --disk-rotation=false -k 25 -f "plot.dat" -m "0x1234" create
 ```
 Following is the map of what least values of (`-s or --stripes`) work for value of (`-k or --size`).
 Note: `k` should be between `17` and `49` and `s` is a power of `2`.
