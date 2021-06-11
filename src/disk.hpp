@@ -98,10 +98,10 @@ void disk_log(fs::path const& filename, op_t const op, uint64_t offset, uint64_t
 #endif
 
 struct FileDisk {
-    explicit FileDisk(const fs::path &filename, uint8_t flags = writeFlag)
+    explicit FileDisk(const fs::path &filename, bool write_mode = true)
     {
         filename_ = filename;
-        Open(flags);
+        Open( (write_mode == true)? writeFlag : 0 );
     }
 
     void Open(uint8_t flags = 0)
@@ -115,6 +115,9 @@ struct FileDisk {
             f_ = ::_wfopen(filename_.c_str(), (flags & writeFlag) ? L"w+b" : L"r+b");
 #else
             f_ = ::fopen(filename_.c_str(), (flags & writeFlag) ? "w+b" : "r+b"); // Note: File opened
+            if (!(flags & writeFlag)) {
+                writeMax = fs::file_size(filename_);
+            }
 #endif
             if (f_ == nullptr) {
                 std::string error_message =
@@ -449,6 +452,9 @@ struct FilteredDisk : Disk
         if (new_size == 0) filter_.free_memory();
     }
     std::string GetFileName() override { return underlying_.GetFileName(); }
+    int64_t GetFilterSize() { return filter_.get_size(); }
+    void GetFilter(uint64_t* buf, int64_t const count) { filter_.dump(buf, count); }
+
     void FreeMemory() override
     {
         filter_.free_memory();
