@@ -61,6 +61,7 @@ public:
     // and their total size will be larger than the final plot file. Temp files are deleted at the
     // end of the process.
     void CreatePlotDisk(
+        bool disk_rotation,
         std::string tmp_dirname,
         std::string tmp2_dirname,
         std::string final_dirname,
@@ -180,7 +181,7 @@ public:
         }
 #endif /* defined(_WIN32) || defined(__x86_64__) */
 
-        const char is_parallel_writing_enabled = !DiskUtil::ShouldLock(final_dirname);
+        const char is_parallel_writing_enabled = !DiskUtil::ShouldLock(disk_rotation, final_dirname);
 
         std::cout << std::endl
                   << "Starting plotting progress into temporary dirs: " << tmp_dirname << " and "
@@ -462,7 +463,7 @@ public:
                 }
             } else {
                 if (!bCopied) {
-                    bool should_lock = DiskUtil::ShouldLock(final_dirname);
+                    bool should_lock = DiskUtil::ShouldLock(disk_rotation,final_dirname);
                     DirectoryLock dir_lock(final_dirname, should_lock);
 
                     fs::copy(

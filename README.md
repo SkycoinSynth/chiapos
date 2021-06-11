@@ -91,6 +91,7 @@ make -j 6
 ./ProofOfSpace -f "plot.dat" prove <32 byte hex challenge>
 ./ProofOfSpace -k 25 verify <hex proof> <32 byte hex challenge>
 ./ProofOfSpace -f "plot.dat" check <iterations>
+./ProofOfSpace --disk-rotation=false -k 25 -f "plot.dat" -m "0x1234" create
 ```
 Following is the map of what least values of (`-s or --stripes`) work for value of (`-k or --size`).
 Note: `k` should be between `17` and `49` and `s` is a power of `2`.
@@ -149,3 +150,23 @@ md5sum ./plot.dat
 ```
 Note: The target output must be `4c881491d57d0b8817302cb6ce23ff52`, in case it's not that's an error.
 
+
+## Plotting a specific phase / plotting across multiple systems
+To plot a specific phase on a given system, use the -P [01234] option as below, (note only -P 1 and -P 2 supported for now)
+
+Plot phase 1,
+```bash
+./ProofOfSpace -k 21 -P 1 -f "plot.dat" -i "7e1392f6b7a2d113f8fb685a7409c81211748c335e87decf348a4345e07dcb2b" create
+```
+
+Plot phase 2 to 4,
+```bash
+./ProofOfSpace -k 21 -P 2 -f "plot.dat" -i "7e1392f6b7a2d113f8fb685a7409c81211748c335e87decf348a4345e07dcb2b" create
+```
+
+Note: If plotting phase 2, is done on a different system, the below files are required to be copied
+      from the build folder of system-1 to the respective build folder on system-2 before executing
+      the above command.
+      
+      plot.dat.*
+      summary.phase1
