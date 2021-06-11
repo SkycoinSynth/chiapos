@@ -25,6 +25,13 @@ struct bitfield
         clear();
     }
 
+    explicit bitfield(uint64_t* buf, int64_t size)
+    : bitfield(size)
+    {
+        assert(buffer_ != nullptr);
+        std::copy(buf, buf + size_, buffer_.get());
+    }
+
     void set(int64_t const bit)
     {
         assert(bit / 64 < size_);
@@ -35,6 +42,20 @@ struct bitfield
     {
         assert(bit / 64 < size_);
         return (buffer_[bit / 64] & (uint64_t(1) << (bit % 64))) != 0;
+    }
+
+    int64_t get_size()
+    {
+        return (size_ * 64); // bitcount
+    }
+
+    void dump(uint64_t* buf, int64_t const bitcount)
+    {
+        int64_t transfer_size = (bitcount + 63) / 64;
+
+        assert(buffer_ != nullptr);
+        assert(buf != nullptr && transfer_size <= size_);
+        std::copy(buffer_.get(), (buffer_.get() + transfer_size), buf);
     }
 
     void clear()
