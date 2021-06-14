@@ -152,7 +152,7 @@ Note: The target output must be `4c881491d57d0b8817302cb6ce23ff52`, in case it's
 
 
 ## Plotting a specific phase / plotting across multiple systems
-To plot a specific phase on a given system, use the -P [01234] option as below, (note only -P 1 and -P 2 supported for now)
+To plot a specific phase on a given system, use the -P [01234] option as below, (note only -P 1, -P 2 and -P 3 supported for now)
 
 Plot phase 1,
 ```bash
