@@ -159,14 +159,23 @@ Plot phase 1,
 ./ProofOfSpace -k 21 -P 1 -f "plot.dat" -i "7e1392f6b7a2d113f8fb685a7409c81211748c335e87decf348a4345e07dcb2b" create
 ```
 
-Plot phase 2 to 4,
+Plot phase 2,
 ```bash
 ./ProofOfSpace -k 21 -P 2 -f "plot.dat" -i "7e1392f6b7a2d113f8fb685a7409c81211748c335e87decf348a4345e07dcb2b" create
 ```
 
-Note: If plotting phase 2, is done on a different system, the below files are required to be copied
-      from the build folder of system-1 to the respective build folder on system-2 before executing
-      the above command.
-      
-      plot.dat.*
-      summary.phase1
+Plot phase 3 and 4,
+```bash
+./ProofOfSpace -k 21 -P 3 -f "plot.dat" -i "7e1392f6b7a2d113f8fb685a7409c81211748c335e87decf348a4345e07dcb2b" create
+```
+Note: If plotting of the next phase, is to be done on a different system, the below files are required to be transferred
+      from the build folder of system-1 to the respective build folder on system-2 before executing the above command.
+```bash
+plot.dat.*
+summary.*
+ ```
+Also note that if any of the following arguments/options are used while plotting on system-1, 
+the same arguments/values should be provided while plotting on system-2,
+ ```bash
+-k, -i, -u, -e, -b, -s, -r
+``` 
