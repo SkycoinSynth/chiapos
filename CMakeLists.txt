@@ -132,7 +132,7 @@ add_executable(ProofOfSpace
 option(BUILD_PROOF_OF_SPACE_STATICALLY "Build ProofOfSpace target statically" OFF)
 IF (BUILD_PROOF_OF_SPACE_STATICALLY)
   message("Statically build ProofOfSpace")
-  target_link_libraries(ProofOfSpace -static)
+  target_link_libraries(ProofOfSpace -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive)
 ENDIF()
 
 option(BUILD_PROOF_OF_SPACE_WITH_GLIBC_2_23 "Build ProofOfSpace target statically" OFF)
