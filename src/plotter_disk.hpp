@@ -61,6 +61,12 @@ public:
     // (filename + ".table1.tmp", filename + ".p2.t3.sort_bucket_4.tmp", etc.) are created
     // and their total size will be larger than the final plot file. Temp files are deleted at the
     // end of the process.
+    // It also supports plotting individual phases. The plotting is done in 4 phases,
+    // Phase 1: Forward prorogation (Listing all proofs)
+    // Phase 2: Backward propogation (Sorting and filtering of entries)
+    // Phase 3: Compression
+    // Phase 4: Checkpoints and final proof table.
+    // Plotting is done in-memory if nobitfield is set, else with file I/O.
     void CreatePlotDisk(
         bool disk_rotation,
         std::string tmp_dirname,
@@ -275,6 +281,8 @@ public:
                 p1.PrintElapsed("Time for phase 1 =");
 
                 if (phase_id == 1) {
+                    // TransitInfo stores parameters used during this run to ensure the
+                    // same parameters are used during subsequent runs.
                     TransitInfo info{ 
                                     k,
                                     id,
@@ -282,6 +290,9 @@ public:
                                     num_buckets,
                                     nobitfield,
                                     table_sizes};
+
+                    // Store necessary info that would be required to restore state when
+                    // plotting the next phase.
                     BackupPhase1(info, tmp_dirname);
 
                     return;
@@ -293,8 +304,7 @@ public:
             if(nobitfield)
             {
                 // Memory to be used for sorting and buffers
-                using UniqueMemoryPointer = std::unique_ptr<uint8_t[]>;
-                UniqueMemoryPointer memory(new uint8_t[memory_size + 7]);
+                std::unique_ptr<uint8_t[]> memory(new uint8_t[memory_size + 7]);
 
                 std::vector<uint64_t> backprop_table_sizes(8, 0);
                 if (phase_id == 0 || phase_id == 2) {
@@ -389,6 +399,8 @@ public:
                 //}
 
                 //if (phase_id == 0 || phase_id == 4) {
+                    // Phase 4 takes very little time.
+                    // TODO : Need to verify if it needs to be separated.
                     std::cout << std::endl
                           << "Starting phase 4/4: Write Checkpoint tables into " << tmp_2_filename
                           << " ... " << Timer::GetNow();
@@ -399,8 +411,7 @@ public:
                 }
             }
             else {
-                using P2ResultsPointer = std::shared_ptr<Phase2Results>;
-                P2ResultsPointer res2{};
+                std::shared_ptr<Phase2Results> res2{};
                 if (phase_id == 0 || phase_id == 2) {
                     if (phase_id == 2) {
                         // Restore summary from phase 1
@@ -459,7 +470,6 @@ public:
                                         tmp_1_disks,
                                         memory_size );
 
-                        //res2 = RestorePhase2(info, tmp_dirname, tmp_1_disks, memory_size);
                     }
                     // Now we open a new file, where the final contents of the plot will be stored.
                     uint32_t header_size = WriteHeader(tmp2_disk, k, id, memo, memo_len);
@@ -484,6 +494,8 @@ public:
                 //}
 
                 //if (phase_id == 0 || phase_id == 4) {
+                    // Phase 4 takes very little time.
+                    // TODO : Need to verify if it needs to be separated.
                     std::cout << std::endl
                           << "Starting phase 4/4: Write Checkpoint tables into " << tmp_2_filename
                           << " ... " << Timer::GetNow();

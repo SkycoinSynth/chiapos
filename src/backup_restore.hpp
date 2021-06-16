@@ -24,7 +24,7 @@
 
 struct TransitInfo
 {
-    // Parameters that are required to match for plotting individual phases.
+    // Parameters that are required to match while plotting individual phases.
     uint8_t  k;
     uint8_t  *id;
     uint32_t id_len;
@@ -128,6 +128,8 @@ struct TransitInfo
         }
     }
 
+    // Compares parameters with the ones provided as arg.
+    // Throws exceptions in case of mismatch.
     void Compare(const TransitInfo& cli)
     {
         for (uint32_t count = 0; count < id_len; count++) {
@@ -263,6 +265,11 @@ std::vector<uint64_t> RestorePhase1(const TransitInfo& prev_info,
     return info.table_sizes;
 }
 
+// Phase-2 results depend on the nobitfield flag. If this flag was set to true,
+// Phase-2/sorting was performed in a chunk of (contiguous)memory of memory_size.
+// If nobitfield was set to false, sorting was done on file using sort buckets.
+// for in-memory sort the results would be in memory.phase2.backup, else
+// they would be in plot.dat.p2.t*.tmp sort buckets.
 std::shared_ptr<Phase2Results> RestorePhase2(const TransitInfo& prev_info, 
                      const std::string& dirname, 
                      std::vector<FileDisk>& disk_list, 
