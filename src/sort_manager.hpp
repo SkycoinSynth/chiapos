@@ -53,7 +53,8 @@ public:
         const std::string &filename,
         uint32_t begin_bits,
         uint64_t const stripe_size,
-        strategy_t const sort_strategy = strategy_t::uniform)
+        strategy_t const sort_strategy = strategy_t::uniform,
+        bool  write_mode = true)
         : memory_size_(memory_size)
         , entry_size_(entry_size)
         , begin_bits_(begin_bits)
@@ -75,10 +76,12 @@ public:
             fs::path const bucket_filename =
                 fs::path(tmp_dirname) /
                 fs::path(filename + ".sort_bucket_" + bucket_number_padded.str() + ".tmp");
-            fs::remove(bucket_filename);
 
-            buckets_.emplace_back(
-                FileDisk(bucket_filename));
+            if(write_mode == true)
+                fs::remove(bucket_filename);
+
+            buckets_.emplace_back(FileDisk(bucket_filename, write_mode));
+            buckets_[bucket_i].write_pointer = fs::file_size(bucket_filename);
         }
     }
 
@@ -209,6 +212,19 @@ public:
         }
         final_position_end = 0;
         memory_start_.reset();
+    }
+
+    // For plotting in multiple phases, buckets will be required for
+    // the next phase.
+    void BackupBuckets()
+    {
+        FlushCache();
+        FreeMemory();
+        for (auto& b : buckets_) {
+            std::string const filename = b.file.GetFileName();
+            fs::rename(filename, fs::path(filename + ".backup"));
+        }
+        buckets_.clear();
     }
 
     ~SortManager()

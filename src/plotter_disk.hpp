@@ -51,6 +51,7 @@
 #include "sort_manager.hpp"
 #include "util.hpp"
 #include "disk_util.hpp"
+#include "backup_restore.hpp"
 
 #define B17PHASE23
 
@@ -60,6 +61,12 @@ public:
     // (filename + ".table1.tmp", filename + ".p2.t3.sort_bucket_4.tmp", etc.) are created
     // and their total size will be larger than the final plot file. Temp files are deleted at the
     // end of the process.
+    // It also supports plotting individual phases. The plotting is done in 4 phases,
+    // Phase 1: Forward prorogation (Listing all proofs)
+    // Phase 2: Backward propogation (Sorting and filtering of entries)
+    // Phase 3: Compression
+    // Phase 4: Checkpoints and final proof table.
+    // Plotting is done in-memory if nobitfield is set, else with file I/O.
     void CreatePlotDisk(
         bool disk_rotation,
         std::string tmp_dirname,
@@ -223,7 +230,7 @@ public:
             throw InvalidValueException("Final directory " + final_dirname + " does not exist");
         }
 
-        uint8_t open_mode = 0;
+        bool write_mode = false;
         // The below files will be required if we are plotting phases 2, 3 or 4.
         if (phase_id == 0 || phase_id == 1) {
             for (fs::path& p : tmp_1_filenames) {
@@ -232,7 +239,7 @@ public:
             fs::remove(tmp_2_filename);
             fs::remove(final_filename);
 
-            open_mode = 0b01; //Write Only.
+            write_mode = true; //Write Only.
         }
 
         std::ios_base::sync_with_stdio(false);
@@ -243,9 +250,9 @@ public:
             std::vector<FileDisk> tmp_1_disks;
 
             for (auto const& fname : tmp_1_filenames)
-                tmp_1_disks.emplace_back(fname, open_mode);
+                tmp_1_disks.emplace_back(fname, write_mode);
 
-            FileDisk tmp2_disk(tmp_2_filename, open_mode);
+            FileDisk tmp2_disk(tmp_2_filename, write_mode);
 
             assert(id_len == kIdLen);
 
@@ -274,17 +281,20 @@ public:
                 p1.PrintElapsed("Time for phase 1 =");
 
                 if (phase_id == 1) {
-                    // Write summary of phase 1 to a file.
-                    std::string filename(fs::path(final_dirname) / fs::path("summary.phase1"));
-                    std::ofstream f(filename);
+                    // TransitInfo stores parameters used during this run to ensure the
+                    // same parameters are used during subsequent runs.
+                    TransitInfo info{ 
+                                    k,
+                                    id,
+                                    id_len,
+                                    num_buckets,
+                                    nobitfield,
+                                    table_sizes};
 
-                    if (!f.good())
-                        throw std::invalid_argument("Error opening " + filename + ".\n");
+                    // Store necessary info that would be required to restore state when
+                    // plotting the next phase.
+                    BackupPhase1(info, tmp_dirname);
 
-                    for (auto itr = table_sizes.begin(); itr != table_sizes.end(); ++itr) {
-                        f.write(reinterpret_cast<char*>(&itr[0]), sizeof(*itr));
-                    }
-                    f.close();
                     return;
                 }
 
@@ -296,10 +306,17 @@ public:
                 // Memory to be used for sorting and buffers
                 std::unique_ptr<uint8_t[]> memory(new uint8_t[memory_size + 7]);
 
+                std::vector<uint64_t> backprop_table_sizes(8, 0);
                 if (phase_id == 0 || phase_id == 2) {
                     if (phase_id == 2) {
+                        TransitInfo info{ k,
+                                        id,
+                                        id_len,
+                                        num_buckets,
+                                        nobitfield };
+                        
                         // Restore summary from phase 1
-                        RestorePhase1(tmp_1_disks, table_sizes, fs::path(final_dirname)/fs::path("summary.phase1"));
+                        table_sizes = RestorePhase1(info, tmp_dirname, tmp_1_disks);
                     }
 
                     std::cout << std::endl
@@ -321,11 +338,45 @@ public:
                         show_progress);
                     p2.PrintElapsed("Time for phase 2 =");
 
+                    if (phase_id == 2) {
+                        // Summarize results of phase-2.
+                        TransitInfo info{ k,
+                                        id,
+                                        id_len,
+                                        num_buckets,
+                                        nobitfield,
+                                        backprop_table_sizes,
+                                        buf_megabytes,
+                                        stripe_size,
+                                        num_threads };
+                        BackupPhase2(info, tmp_dirname, nullptr, memory_size, memory.get());
+
+                        return;
+                    }
+                }
+
+                if (phase_id == 0 || phase_id == 3) {
+                    if (phase_id == 3) {
+                        // Restore results of Phase-2.
+                        TransitInfo info{ k,
+                                        id,
+                                        id_len,
+                                        num_buckets,
+                                        nobitfield,
+                                        backprop_table_sizes,
+                                        buf_megabytes,
+                                        stripe_size,
+                                        num_threads };
+
+                        RestorePhase2( info,
+                                       tmp_dirname,
+                                       tmp_1_disks,
+                                       memory_size,
+                                       memory.get() );
+                    }
+
                     // Now we open a new file, where the final contents of the plot will be stored.
                     uint32_t header_size = WriteHeader(tmp2_disk, k, id, memo, memo_len);
-                //}
-
-                //if (phase_id == 0 || phase_id == 3) {
                     std::cout << std::endl
                               << "Starting phase 3/4: Compression without bitfield from tmp files into " << tmp_2_filename
                               << " ... " << Timer::GetNow();
@@ -348,6 +399,8 @@ public:
                 //}
 
                 //if (phase_id == 0 || phase_id == 4) {
+                    // Phase 4 takes very little time.
+                    // TODO : Need to verify if it needs to be separated.
                     std::cout << std::endl
                           << "Starting phase 4/4: Write Checkpoint tables into " << tmp_2_filename
                           << " ... " << Timer::GetNow();
@@ -358,10 +411,16 @@ public:
                 }
             }
             else {
+                std::shared_ptr<Phase2Results> res2{};
                 if (phase_id == 0 || phase_id == 2) {
                     if (phase_id == 2) {
                         // Restore summary from phase 1
-                        RestorePhase1(tmp_1_disks, table_sizes, fs::path(final_dirname)/fs::path("summary.phase1"));
+                        TransitInfo info{ k,
+                                        id,
+                                        id_len,
+                                        num_buckets,
+                                        nobitfield };
+                        table_sizes = RestorePhase1(info, tmp_dirname, tmp_1_disks);
                     }
 
                     std::cout << std::endl
@@ -369,7 +428,7 @@ public:
                           << Timer::GetNow();
 
                     Timer p2;
-                    Phase2Results res2 = RunPhase2(
+                    res2 = RunPhase2(
                         tmp_1_disks,
                         table_sizes,
                         k,
@@ -382,9 +441,36 @@ public:
                         show_progress);
                     p2.PrintElapsed("Time for phase 2 =");
 
-                //}
+                    if (phase_id == 2) {
+                        // Summarize results of phase-2.
+                        TransitInfo info{ k,
+                                        id,
+                                        id_len,
+                                        num_buckets,
+                                        nobitfield,
+                                        res2->table_sizes };
+                        BackupPhase2(info, tmp_dirname, res2);
 
-                //if (phase_id == 0 || phase_id == 3) {
+                        return;
+                    }
+                }
+
+                Phase3Results res{};
+                if (phase_id == 0 || phase_id == 3) {
+                    if (phase_id == 3) {
+                        // Restore results of Phase-2.
+                        TransitInfo info{ k,
+                                        id,
+                                        id_len,
+                                        num_buckets,
+                                        nobitfield };
+
+                        res2 = RestorePhase2( info,
+                                        tmp_dirname,
+                                        tmp_1_disks,
+                                        memory_size );
+
+                    }
                     // Now we open a new file, where the final contents of the plot will be stored.
                     uint32_t header_size = WriteHeader(tmp2_disk, k, id, memo, memo_len);
 
@@ -392,10 +478,10 @@ public:
                           << "Starting phase 3/4: Compression from tmp files into " << tmp_2_filename
                           << " ... " << Timer::GetNow();
                     Timer p3;
-                    Phase3Results res = RunPhase3(
+                    res = RunPhase3(
                         k,
                         tmp2_disk,
-                        std::move(res2),
+                        std::move(*res2),
                         id,
                         tmp_dirname,
                         filename,
@@ -408,6 +494,8 @@ public:
                 //}
 
                 //if (phase_id == 0 || phase_id == 4) {
+                    // Phase 4 takes very little time.
+                    // TODO : Need to verify if it needs to be separated.
                     std::cout << std::endl
                           << "Starting phase 4/4: Write Checkpoint tables into " << tmp_2_filename
                           << " ... " << Timer::GetNow();
@@ -560,34 +648,5 @@ private:
         std::cout << "Wrote: " << bytes_written << std::endl;
         return bytes_written;
     }
-
-    void RestorePhase1(std::vector<FileDisk> &tmp_1_disks, std::vector<uint64_t> &table_sizes, std::string filename)
-    {
-        // Restore summary from phase 1
-        std::ifstream f;
-
-        for (auto itr = tmp_1_disks.begin(); itr != tmp_1_disks.end(); itr++) {
-            f.open(itr->GetFileName());
-            if (!f.good()) {
-                throw std::invalid_argument("File :" + itr->GetFileName() + " not imported.\n");
-            }
-            f.close();
-        }
-
-        uint64_t size{};
-        f.open(filename);
-        if (!f.good() ) {
-                throw std::invalid_argument("File :" + filename + " not imported.\n");
-        }
-
-        for (uint8_t count = 0; count < tmp_1_disks.size(); count++) {
-            if (f.read(reinterpret_cast<char *>(&size), sizeof(size))) {
-                table_sizes[count] = size;
-            }
-        }
-        f.close();
-        fs::remove(filename);
-    }
 };
-
 #endif  // SRC_CPP_PLOTTER_DISK_HPP_

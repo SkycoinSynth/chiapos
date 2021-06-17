@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) try {
         "b, buffer",
         "Megabytes to be used as buffer for sorting and plotting",
         cxxopts::value<uint32_t>(buffmegabytes))(
-        "P, Phase", "Phase number to plot (1, 2, 3, 4, or 0(default, all phases)",
+        "P, Phase", "Phase number to plot (1, 2, 3, 4)",
         cxxopts::value<uint8_t>(phase_id))(
         "p, progress", "Display progress percentage during plotting",
         cxxopts::value<bool>(show_progress))(
@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) try {
             exit(1);
         }
         if (phase_id > 4) {
-            cout << "Invalid phase identifier, should be between 0 and 4." << endl;
+            cout << "Invalid phase identifier, should be between 1 and 4." << endl;
             exit(1);
         }
 

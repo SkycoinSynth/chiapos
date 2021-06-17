@@ -152,21 +152,38 @@ Note: The target output must be `4c881491d57d0b8817302cb6ce23ff52`, in case it's
 
 
 ## Plotting a specific phase / plotting across multiple systems
-To plot a specific phase on a given system, use the -P [01234] option as below, (note only -P 1 and -P 2 supported for now)
+To plot a specific phase on a given system, use the -P [1234] option as below, (note only -P 1, -P 2 and -P 3 supported for now)
 
 Plot phase 1,
 ```bash
 ./ProofOfSpace -k 21 -P 1 -f "plot.dat" -i "7e1392f6b7a2d113f8fb685a7409c81211748c335e87decf348a4345e07dcb2b" create
 ```
 
-Plot phase 2 to 4,
+Plot phase 2,
 ```bash
 ./ProofOfSpace -k 21 -P 2 -f "plot.dat" -i "7e1392f6b7a2d113f8fb685a7409c81211748c335e87decf348a4345e07dcb2b" create
 ```
 
-Note: If plotting phase 2, is done on a different system, the below files are required to be copied
-      from the build folder of system-1 to the respective build folder on system-2 before executing
-      the above command.
-      
-      plot.dat.*
-      summary.phase1
+Plot phase 3 and 4,
+```bash
+./ProofOfSpace -k 21 -P 3 -f "plot.dat" -i "7e1392f6b7a2d113f8fb685a7409c81211748c335e87decf348a4345e07dcb2b" create
+```
+Note: If plotting of the next phase, is to be done on a different system, the below files are required to be transferred
+      from the build folder of system-1 to the respective build folder on system-2 before executing the above command.
+```bash
+*.tmp
+*.backup
+```
+For example:
+```bash
+system-1> ./ProofOfSpace -k 21 -P 1 -f "plot.dat" -i "7e1392f6b7a2d113f8fb685a7409c81211748c335e87decf348a4345e07dcb2b" create
+system-1> tar cvf phase1_backup.tar *.tmp *.backup
+system-1> scp phase1_backup.tar user@system-2:/<path-to-build-dir>/
+system-2> tar xvf phase1_backup.tar
+system-2> ./ProofOfSpace -k 21 -P 2 -f "plot.dat" -i "7e1392f6b7a2d113f8fb685a7409c81211748c335e87decf348a4345e07dcb2b" create
+```
+Also note that "if" any of the below options are used while plotting on system-1, the same options/values should
+be provided while plotting on system-2,
+ ```bash
+-k, -i, -u, -e, -b, -s, -r
+``` 
